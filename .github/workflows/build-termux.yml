@@ -1,0 +1,58 @@
+name: Build LobeChat for Termux (Android)
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Publish a Release with this tag (leave empty to only build an artifact)"
+        required: false
+        default: ""
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout this port repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.3
+
+      - name: Build and package
+        run: bash termux/build-lobechat-android.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lobechat-termux-android
+          path: lobechat-termux-android.zip
+          retention-days: 90
+
+      - name: Publish release
+        if: inputs.release_tag != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.release_tag }}
+          name: LobeChat 1.143.3 for Termux (Android)
+          files: lobechat-termux-android.zip
+          body: |
+            LobeChat (LobeHub) v1.143.3 — the last client-DB version — built as a
+            Next.js standalone server and packaged for Termux on Android.
+
+            Install: unzip, run `./install.sh` in Termux (needs the `nodejs`
+            package), then run `lobechat` and open http://localhost:3210 in the
+            phone browser. Chat data lives in the browser (client DB); no
+            PostgreSQL or other server is needed.
+
+            Note: the `sharp` native module is pruned from this bundle (it has
+            no Android build), so image-generation thumbnails do not work;
+            everything else is unaffected.
