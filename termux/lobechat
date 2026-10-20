@@ -1,0 +1,9 @@
+#!/data/data/com.termux/files/usr/bin/sh
+# LobeChat standalone server launcher for Termux.
+# Serves on port 3210 (all interfaces, so a laptop on the same hotspot can
+# reach it at http://<phone-ip>:3210 too). Data lives in the browser.
+cd "$HOME/lobechat/app" || exit 1
+export PORT=3210
+# Keep the Node heap bounded on the phone (chat UI server, 1 GB is generous).
+export NODE_OPTIONS="--max-old-space-size=1024"
+exec node server.js
