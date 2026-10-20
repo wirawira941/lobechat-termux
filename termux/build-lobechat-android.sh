@@ -42,7 +42,9 @@ echo "== Building standalone (DOCKER=true flips output:'standalone')"
 # is safe against those errors.
 pnpm exec tsx scripts/prebuild.mts
 export NODE_OPTIONS="--max-old-space-size=6144"
-DOCKER=true next build
+# `next` is a local binary (node_modules/.bin); invoke via pnpm exec —
+# bare `next` is not on PATH outside an npm-script context (broke run #3).
+DOCKER=true pnpm exec next build
 npm run build-sitemap
 
 echo "== Assembling the standalone package"
