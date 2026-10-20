@@ -23,8 +23,15 @@ git clone --depth 1 --branch "v$VERSION" \
   https://github.com/lobehub/lobe-chat.git "$WORK/src"
 cd "$WORK/src"
 
-echo "== Installing dependencies (frozen lockfile)"
-pnpm install --frozen-lockfile
+echo "== Installing dependencies"
+# Tag v1.143.3 ships NO pnpm-lock.yaml, so a frozen install is impossible
+# (and --frozen-lockfile fails). Mirror the official Dockerfile, which runs
+# a plain `pnpm i`. If a future pin gains a lockfile, use the frozen form.
+if [ -f pnpm-lock.yaml ]; then
+  pnpm install --frozen-lockfile
+else
+  pnpm install
+fi
 
 echo "== Building standalone (DOCKER=true flips output:'standalone')"
 # build:docker = prebuild + DOCKER=true next build (heap 6144) + build-sitemap
