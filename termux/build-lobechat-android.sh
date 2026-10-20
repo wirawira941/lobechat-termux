@@ -44,7 +44,12 @@ pnpm exec tsx scripts/prebuild.mts
 export NODE_OPTIONS="--max-old-space-size=6144"
 # `next` is a local binary (node_modules/.bin); invoke via pnpm exec —
 # bare `next` is not on PATH outside an npm-script context (broke run #3).
-DOCKER=true pnpm exec next build
+# APP_URL must be set at build time (same placeholder the official
+# Dockerfile uses): src/libs/oidc-provider/config.ts does
+# urlJoin(appEnv.APP_URL!, ...) at module scope, and with APP_URL unset
+# `next build` dies at "Collecting page data for /oidc/consent" with
+# "TypeError: Url must be a string. Received undefined" (broke run #4).
+APP_URL="http://app.com" DOCKER=true pnpm exec next build
 npm run build-sitemap
 
 echo "== Assembling the standalone package"
