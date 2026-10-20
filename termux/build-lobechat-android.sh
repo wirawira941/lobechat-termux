@@ -78,6 +78,16 @@ test -f "$PKG/app/server.js" || { echo "server.js missing — build is broken"; 
 echo "== Pruning sharp (no Android prebuild; only image-gen thumbnails use it)"
 rm -rf "$PKG/app/node_modules/sharp" "$PKG/app/node_modules/@img"
 
+echo "== Installing the pure-JS sharp stub"
+# Pruning alone is not enough: src/server/services/generation/index.ts
+# imports sharp statically, and that module sits in the tRPC lambda route's
+# graph — without a resolvable 'sharp', every tRPC call 500s (found on
+# device 2026-10-20). The stub parses real image dimensions from headers
+# and passes buffers through unresized. See termux/sharp-stub/index.js.
+mkdir -p "$PKG/app/node_modules/sharp"
+cp "$ROOT/termux/sharp-stub/package.json" "$ROOT/termux/sharp-stub/index.js" \
+  "$PKG/app/node_modules/sharp/"
+
 echo "== Packaging zip"
 cp "$ROOT/termux/install.sh" "$PKG/install.sh"
 cp "$ROOT/termux/lobechat" "$PKG/lobechat"
