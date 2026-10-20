@@ -49,6 +49,18 @@ export NODE_OPTIONS="--max-old-space-size=6144"
 # urlJoin(appEnv.APP_URL!, ...) at module scope, and with APP_URL unset
 # `next build` dies at "Collecting page data for /oidc/consent" with
 # "TypeError: Url must be a string. Received undefined" (broke run #4).
+#
+# The changelog pages fetch remote markdown from raw.githubusercontent.com
+# at build time (ChangelogService.getChangelogIndex/getPostById); on CI that
+# exceeds Next's 60s static-generation timeout and aborts the whole build
+# (broke run #5). Render them on demand instead — for a personal deployment
+# the static changelog has no value, and the data is fresher at runtime.
+for f in \
+  "src/app/[variants]/(main)/changelog/page.tsx" \
+  "src/app/[variants]/(main)/changelog/modal/page.tsx" \
+  "src/app/[variants]/@modal/(.)changelog/modal/page.tsx"; do
+  grep -q "force-dynamic" "$f" || printf "\nexport const dynamic = 'force-dynamic';\n" >> "$f"
+done
 APP_URL="http://app.com" DOCKER=true pnpm exec next build
 npm run build-sitemap
 
