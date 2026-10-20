@@ -82,5 +82,9 @@ echo "== Packaging zip"
 cp "$ROOT/termux/install.sh" "$PKG/install.sh"
 cp "$ROOT/termux/lobechat" "$PKG/lobechat"
 cd "$PKG"
-zip -qr "$ROOT/lobechat-termux-android.zip" install.sh lobechat app
+# --symlinks is load-bearing: the standalone tree is a pnpm layout whose
+# packages resolve their deps through symlinks into .pnpm/. Plain zip
+# dereferences them into detached copies, and Node then cannot find e.g.
+# styled-jsx from inside next (MODULE_NOT_FOUND on device, run #6 zip).
+zip -qr --symlinks "$ROOT/lobechat-termux-android.zip" install.sh lobechat app
 ls -lh "$ROOT/lobechat-termux-android.zip"
